@@ -1,94 +1,63 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+'use client'
+import React from 'react'
+import {createStore} from "@/store/createStore"
+
+let niceReducer = (state, action) => {
+  if (action.type === 'INSERT_COIN') {
+    return {...state, crankMoney: state.crankMoney + 1}
+  }
+  if (action.type === 'TURN_CRANK') {
+    if (state.crankMoney >= 1) {
+      return {...state, gumballs: state.gumballs - 1, bankMoney: state.bankMoney + 1, crankMoney: 0}
+    }
+  }
+  return state
+}
+let initialState = {crankMoney: 0, gumballs: 100, bankMoney: 0}
+let store = createStore(niceReducer, initialState)
+store.subscribe(() => console.log("XXX", store.getState()))
 
 export default function Home() {
+  const [localState, setLocalState] = React.useState(store.getState())
+
+  React.useEffect(() => {
+    const handleStoreUpdate = () => {
+      setLocalState(store.getState())
+    }
+
+    const unsubscribe = store.subscribe(handleStoreUpdate)
+
+    return () => {
+      unsubscribe()
+    }
+  }, [])
+
+  let state = store.getState()
+  console.log("YYY", state)
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
+    <main>
+      <div>
         <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.js</code>
+          {state.gumballs} gumballs left
         </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+        <p>
+          {state.crankMoney} coins inserted
+        </p>
+        <p>
+          {state.bankMoney} coins in bank
+        </p>
+        <button onClick={() => store.dispatch({type: 'INSERT_COIN'})}>
+          Insert Coin
+        </button>
+        <button onClick={() => store.dispatch({type: 'TURN_CRANK'})}>
+          Turn Crank
+        </button>
+        <button onClick={() => store.dispatch({type: 'REFILL'})}>
+          Refill
+        </button>
+        <button onClick={() => store.dispatch({type: 'COLLECT_MONEY'})}>
+          Collect Money
+        </button>
       </div>
     </main>
   )
